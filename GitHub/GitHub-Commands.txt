@@ -1,0 +1,66 @@
+SETUP
+git --version
+
+git config --global user.name "Sabina Ruckova"
+git config --global user.email "sabinka.ruckova@gmai.com"
+git config --global init.defaultBranch main //zabezpeci ze hlavna vetva sa bude volat main
+git config --global pull.rebase false //git pull bude pri zlučovaní robiť merge
+git config --global --list //info ig?
+"q" ma vrati do normalneho riedku
+
+LOGIN
+gh auth login
+gh auth setup-git
+gh auth switch //switchovanie medzi uctami
+gh auth status //na akom som ucte
+
+COMMANDY
+mkdir mojPriecinok //vytvory priecinok
+git init //napise v akom priecinku sa nachadzam
+git status //napise stav (co treba ulozit atd)
+
+COMMIT
+git add README.md
+git commit -m "Pridaj README"
+
+git log --oneline //pozri si historiu commitov'
+
+git diff //pozri co sa zmenilo
+git restore README.md //vrat spat vsetky zmeny
+
+git restore súbor (zahodí neuložené zmeny v súbore - zmena ešte nie je v commite)
+git revert commit (vytvorí nový commit, ktorý zruší starý - commit už existuje)
+
+git remote add origin https://github.com/SabiRuck/git-zaklady.git     
+git remote -v
+git push -u origin main
+
+git clone https://github.com/SabiRuck/git-zaklady.git kamarat-kopia
+
+git switch -c feature/o-mne //vytvorim novu vetnu
+git switch main //switche na nejaku vetvu
+git merge feature/o-mne
+
+ZMAZANIE VETVY
+git branch -d feature/o-mne
+git branch
+git push
+
+git clone https://github.com/sabikaa-r/git-zaklady.git git-zaklady-fork
+
+2PUSHNU
+git push
+git pull (bude error v merge)
+git status
+ptm treba otvorit tes subor a takymi znakmi git oznaci co je inak
+bud to zmazat cele a nahradit to alebo vybrat co chem z coho a savenut to ptm:
+git add README.md
+git commit -m "Vyries konflikt v README"
+git push
+
+git log --oneline --graph //ukase graf toho mergnutia
+
+git merge --abort //ak nevieme co kde mergnut alebo tak tak tymto sa vrati na subor pred problemom s merge
+
+
+

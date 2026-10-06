@@ -1,0 +1,22 @@
+cout << "Mam " << vek << " rokov." << endl; //endl alebo "\n"
+ 
+cin >> znak >> cislo;
+
+int kosiceky[9] = {0};
+
+if (x > 10) cout << "Velke cislo";
+for (int i = 0; i < 5; i++) cout << i << " ";
+while (x < 10) x++;
+
+
+// syntaxt:  podmienka ? hodnota_ak_plati : hodnota_ak_neplati;
+int vysledok = (a > b) ? a : b;
+
+cout << ((cislo % 2 == 0) ? "Sude" : "Liche");
+
+if (x > 0) platne++, celkovo++;
+
+#include <vector>
+
+vector<int> cisla; // Dynamické pole
+cisla.push_back(10);
