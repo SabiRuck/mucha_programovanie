@@ -9,7 +9,14 @@ int lastId = 0;
 
 vector<Person*> Users = {new Admin("Petka", "petaskolova@gmail.com", "123")};
 
+Student* currentStudent = nullptr;
+Instructor* currentInstructor = nullptr;
+Admin* currentAdmin = nullptr;
 
+char currentTask;
+
+
+void LogIn();
 
 
 class Person
@@ -21,7 +28,6 @@ class Person
         int id;
 
     
-
 
     public:
 
@@ -124,39 +130,133 @@ public:
 
 int main()
 {
-    string loginEmail;
-    string loginPassword;
-    
-    cout << "enter email and password:\n";
-    cin >> loginEmail >> loginPassword;
-
-    for(int i=0; i<Users.size(); i++)
+    while(true)
     {
-        Person* loggedUser = Users[i]->trylogin(loginEmail, loginPassword);
-        if (loggedUser != nullptr)
+        LogIn();
+
+
+
+        if (currentStudent != nullptr) 
         {
-            if(Student* currentUser = dynamic_cast<Student*>(loggedUser)) 
+            
+        }
+        else if (currentInstructor != nullptr) 
+        {
+            
+        }
+        else if (currentAdmin != nullptr) 
+        {
+            while(true)
             {
-            }
-            else if(Instructor* currentUser = dynamic_cast<Instructor*>(loggedUser)) 
-            {
-                
-            }
-            else if(Admin* currentUser = dynamic_cast<Admin*>(loggedUser)) 
-            {
-                
+
+                cout << "Create new account(C) or Log out(L)";
+                cin >> currentTask;
+
+                if(currentTask == 'C')
+                {
+                    char role;
+                    string name;
+                    string surename;
+                    string email;
+                    string password;
+                    cout << "Input role(I, S, A), name, surename, email, password";
+                    cin >> role >> name >> surename >> email >> password;
+
+                    name = name + surename;
+
+                    if(role == 'S')
+                    {
+                        Users.push_back(new Student(name, email, password));
+                        Student* currentStudent = *Users[Users.size()-1];
+
+                    }
+                    else if(role == 'I')
+                    {
+                        Users.push_back(new Instructor(name, email, password));
+                        Instructor* currentInstructor = *Users[Users.size()-1];
+
+                    }
+                    else if(role == 'A')
+                    {
+                        Users.push_back(new Admin(name, email, password));
+                        Admin* currentAdmin = *Users[Users.size()-1];
+
+                    }
+                    else
+                    {
+                        cout << "Incorrect input";
+                        break;
+                    }
+                    
+
+                }
+                else if(currentTask == 'L')
+                {
+                    break;
+                    currentAdmin = nullptr;
+                }
+                else
+                {
+                    cout << "Incorret Input";
+                }
             }
 
-                break;
-        }    
+            
+        }
+
+
+
+
+
+    cout << "Type 'N' if you wanna leave app:";
+    cin >> currentTask;
+    if(currentTask == 'N')
+    {
+        return 0;
+    }
+
+     
+    }
 }
 
 
 
+void LogIn()
+{
+    while(true)
+    {
+        string loginEmail;
+        string loginPassword;
+        
+        cout << "enter email and password:\n";
+        cin >> loginEmail >> loginPassword;
 
+        for (int i = 0; i < Users.size(); i++)
+        {
+            Person* loggedUser = Users[i]->trylogin(loginEmail, loginPassword);
+            
+            if (loggedUser != nullptr)
+            {
+                
+                if (Student* s = dynamic_cast<Student*>(loggedUser)) 
+                {
+                    currentStudent = s;
+                }
+                else if (Instructor* inst = dynamic_cast<Instructor*>(loggedUser)) 
+                {
+                    currentInstructor = inst;
+                }
+                else if (Admin* a = dynamic_cast<Admin*>(loggedUser)) 
+                {
+                    currentAdmin = a;
+                }
 
+                return;
+            }
 
+        }
+        cout << "Incorrect login credentials or user doesn't exist";
 
+    }
 
-    return 0;
 }
