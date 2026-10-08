@@ -29,6 +29,7 @@ struct DateSlot {
     int year;
 };
 
+
 class DrivingLesson
 {
     int lessonID;
@@ -40,19 +41,23 @@ public:
 
     DrivingLesson(TimeDateSlot s, Instructor* i)
     {
-        lessonID = lastLessonID+1;
+        lessonID = lastLessonID + 1;
         lastLessonID = lessonID;
         slot = s;
         instructor = i;
     }
 
-    bool isAvailable() { return bookedBy==nullptr; }
+    bool isAvailable() { return bookedBy == nullptr; }
+
     void book(Student* s) { bookedBy = s; }
+
     void unbook() { bookedBy = nullptr; }
 
 
     TimeDateSlot& getTimeDateSlot() { return slot; }
+
     Instructor* getInstructor() { return instructor; }
+
     Student* getStudent() { return bookedBy; }
 };
 
@@ -70,8 +75,8 @@ public:
 
     Person(string n, string e, string p)
     {
-        id = lastId +1;
-        lastId = lastId +1;
+        id = lastId + 1;
+        lastId = lastId + 1;
         name = n;
         email = e;
         password = p;
@@ -100,8 +105,6 @@ public:
     Student(string n, string e, string p) : Person(move(n), move(e), move(p)) {}
 
     void userActions(App& sys) override;
-
-
 };
 
 
@@ -111,15 +114,6 @@ public:
     Instructor(string n, string e, string p) : Person(move(n), move(e), move(p)) {}
 
     void userActions(App& sys) override;
-
-
-
-
-
-
-
-
-
 };
 
 
@@ -131,35 +125,35 @@ public:
     Admin(string n, string e, string p) : Person(move(n), move(e), move(p)) {}
 
     void userActions(App& sys) override;
-
 };
 
 
 
 class App 
 {
-    private:
-        vector<Person*> users;
-        vector<DrivingLesson*> lessons;
-        DateSlot today;
+private:
+    vector<Person*> users;
+    vector<DrivingLesson*> lessons;
+    DateSlot today;
 
-    public:
-        App() 
-        {
-            users.push_back(new Admin("Sabina Ruckova", "sabiruckova@gmail.com", "123"));
-            users.push_back(new Instructor("Petka Skolova", "petaskolova@gmail.com", "123"));
-            users.push_back(new Student("Peter Macus", "petermacus@gmail.com", "123"));
+public:
 
-            time_t now_time = time(nullptr);
-            tm* now = localtime(&now_time);
+    App() 
+    {
+        users.push_back(new Admin("Sabina Ruckova", "sabiruckova@gmail.com", "123"));
+        users.push_back(new Instructor("Petka Skolova", "petaskolova@gmail.com", "123"));
+        users.push_back(new Student("Peter Macus", "petermacus@gmail.com", "123"));
 
-            today = {
-                now->tm_mday,
-                now->tm_mon + 1,
-                now->tm_year + 1900,
-            };
+        time_t now_time = time(nullptr);
+        tm* now = localtime(&now_time);
 
-        }
+        today = {
+            now->tm_mday,
+            now->tm_mon + 1,
+            now->tm_year + 1900,
+        };
+    }
+
 
     Person* login() 
     {
@@ -169,6 +163,7 @@ class App
         cout << "Log in\n";
         cout << "Email: ";
         cin >> email;
+
         cout << "Password: ";
         cin >> password;
 
@@ -189,40 +184,72 @@ class App
     }
 
 
-    void createNewUser() 
+    bool validEmail(string email)
     {
-        char role;
-        string name, surname, email, password;
+        int at = email.find('@');
 
-        cout << "\n";
-        cout << "Account data:\n";
-        cout << "Role (S-student,I-instructor,A-admin): ";
-        cin >> role;
+        if (at == string::npos)
+            return false;
 
-        cout << "Enter first name, surename, email, password:\n";
-        cin >> name >> surname >> email >> password;
+        if (at == 0)
+            return false;
 
-        string fullName = name + " " + surname;
-        Person* newUser = nullptr;
+        if (email.find('@', at + 1) != string::npos)
+            return false;
 
-        switch (role) 
+        if (email.find('.', at) == string::npos)
+            return false;
+
+        return true;
+    }
+
+
+    bool emailExists(string email)
+    {
+        for (Person* user : users)
         {
-            case 'S': newUser = new Student(fullName, email, password); break;
-            case 'I': newUser = new Instructor(fullName, email, password); break;
-            case 'A': newUser = new Admin(fullName, email, password); break;
-            default:
-                cout << "\n";
-                cout << "Invalid role choice!\n";
-                cout << "\n";
-                return;
+            if (user->checkData(email, ""))
+            {
+                return true;
+            }
         }
 
-        users.push_back(newUser);
-
-        cout << "\n";
-        cout << "Account created\n";
-        cout << "\n";
+        return false;
     }
+
+
+    void addUser(Person* user)
+    {
+        users.push_back(user);
+    }
+
+
+    bool isValidDate(int day, int month, int year)
+    {
+        if (month < 1 || month > 12)
+            return false;
+
+        if (day < 1)
+            return false;
+
+        int daysInMonth[] = {
+            31, 28, 31, 30, 31, 30,
+            31, 31, 30, 31, 30, 31
+        };
+
+        if (month == 2 &&
+            (year % 400 == 0 ||
+            (year % 4 == 0 && year % 100 != 0)))
+        {
+            daysInMonth[1] = 29;
+        }
+
+        if (day > daysInMonth[month - 1])
+            return false;
+
+        return true;
+    }
+
 
     vector<DateSlot> getWeek(int week)
     {
@@ -264,6 +291,7 @@ class App
 
         return dates;
     }
+
 
     map<string, vector<DrivingLesson*>> lessonsInWeek(int week)
     {
@@ -320,13 +348,16 @@ class App
     void printLessonsStud(int week)
     {
         vector<DateSlot> dates = getWeek(week);
-        map<string, vector<DrivingLesson*>> weekLessons = lessonsInWeek(week);
+
+        map<string, vector<DrivingLesson*>> weekLessons =
+            lessonsInWeek(week);
 
         vector<string> dayNames = {
             "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
         };
 
         cout << "\n";
+
         cout << dates[0].day << "." << dates[0].month << "." << dates[0].year
             << " - "
             << dates[6].day << "." << dates[6].month << "." << dates[6].year
@@ -338,7 +369,8 @@ class App
 
             cout << "\n" << dayName << ":\n";
 
-            vector<DrivingLesson*>& dayLessons = weekLessons[dayName];
+            vector<DrivingLesson*>& dayLessons =
+                weekLessons[dayName];
 
             if (dayLessons.empty())
             {
@@ -350,7 +382,8 @@ class App
             {
                 DrivingLesson* lesson = dayLessons[j];
 
-                TimeDateSlot& slot = lesson->getTimeDateSlot();
+                TimeDateSlot& slot =
+                    lesson->getTimeDateSlot();
 
                 cout << "  " << j + 1 << ". "
                     << slot.day << "."
@@ -372,19 +405,24 @@ class App
     void printLessonsInstr(int week, Instructor* instructor)
     {
         vector<DateSlot> dates = getWeek(week);
-        map<string, vector<DrivingLesson*>> weekLessons = lessonsInWeek(week);
+
+        map<string, vector<DrivingLesson*>> weekLessons =
+            lessonsInWeek(week);
 
         vector<string> dayNames = {
             "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
         };
 
         cout << "\n";
+
         cout << dates[0].day << "." << dates[0].month << "." << dates[0].year
             << " - "
             << dates[6].day << "." << dates[6].month << "." << dates[6].year
             << "\n";
 
-        cout << "Instructor: " << instructor->getName() << "\n";
+        cout << "Instructor: "
+            << instructor->getName()
+            << "\n";
 
 
         for (int i = 0; i < 7; i++)
@@ -393,7 +431,8 @@ class App
 
             cout << "\n" << dayName << ":\n";
 
-            vector<DrivingLesson*>& dayLessons = weekLessons[dayName];
+            vector<DrivingLesson*>& dayLessons =
+                weekLessons[dayName];
 
             int lessonNumber = 1;
 
@@ -402,7 +441,8 @@ class App
                 if (lesson->getInstructor() != instructor)
                     continue;
 
-                TimeDateSlot& slot = lesson->getTimeDateSlot();
+                TimeDateSlot& slot =
+                    lesson->getTimeDateSlot();
 
                 cout << "  " << lessonNumber << ". "
                     << slot.day << "."
@@ -432,18 +472,20 @@ class App
         cout << "\n";
     }
 
+
     DateSlot getToday()
     {
         return today;
     }
 
+
     void addLesson(TimeDateSlot slot, Instructor* instructor)
     {
         lessons.push_back(new DrivingLesson(slot, instructor));
     }
-
-
 };
+
+
 
 void Student::userActions(App& sys)
 {
@@ -490,6 +532,7 @@ void Student::userActions(App& sys)
                         cout << "\n";
                         week++;
                     }
+
                     else if (choice == 'L')
                     {
                         cout << "\n";
@@ -501,6 +544,7 @@ void Student::userActions(App& sys)
 
                         cout << "\n";
                     }
+
                     else if (choice == 'R')
                     {
                         cout << "\n";
@@ -512,7 +556,18 @@ void Student::userActions(App& sys)
                         cin >> day;
 
                         cout << "Enter lesson number: ";
-                        cin >> lessonNumber;
+
+                        if (!(cin >> lessonNumber))
+                        {
+                            cin.clear();
+                            cin.ignore(1000, '\n');
+
+                            cout << "\n";
+                            cout << "Invalid lesson number.\n";
+                            cout << "\n";
+
+                            continue;
+                        }
 
                         map<string, vector<DrivingLesson*>> weekLessons =
                             sys.lessonsInWeek(week);
@@ -522,6 +577,7 @@ void Student::userActions(App& sys)
                             cout << "\n";
                             cout << "Invalid day.\n";
                             cout << "\n";
+
                             continue;
                         }
 
@@ -534,6 +590,7 @@ void Student::userActions(App& sys)
                             cout << "\n";
                             cout << "Invalid lesson number.\n";
                             cout << "\n";
+
                             continue;
                         }
 
@@ -545,6 +602,7 @@ void Student::userActions(App& sys)
                             cout << "\n";
                             cout << "This lesson is already reserved.\n";
                             cout << "\n";
+
                             continue;
                         }
 
@@ -555,6 +613,7 @@ void Student::userActions(App& sys)
                         cout << "Lesson successfully reserved.\n";
                         cout << "\n";
                     }
+
                     else if (choice == 'G')
                     {
                         cout << "\n";
@@ -562,6 +621,7 @@ void Student::userActions(App& sys)
                     }
                 }
             }
+
             else
             {
                 cout << "\n";
@@ -592,6 +652,7 @@ void Student::userActions(App& sys)
                     cout << "\n";
                     week++;
                 }
+
                 else if (choice == 'L')
                 {
                     cout << "\n";
@@ -603,6 +664,7 @@ void Student::userActions(App& sys)
 
                     cout << "\n";
                 }
+
                 else if (choice == 'C')
                 {
                     cout << "\n";
@@ -614,7 +676,18 @@ void Student::userActions(App& sys)
                     cin >> day;
 
                     cout << "Enter lesson number: ";
-                    cin >> lessonNumber;
+
+                    if (!(cin >> lessonNumber))
+                    {
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+
+                        cout << "\n";
+                        cout << "Invalid lesson number.\n";
+                        cout << "\n";
+
+                        continue;
+                    }
 
                     map<string, vector<DrivingLesson*>> weekLessons =
                         sys.lessonsInWeek(week);
@@ -624,6 +697,7 @@ void Student::userActions(App& sys)
                         cout << "\n";
                         cout << "Invalid day.\n";
                         cout << "\n";
+
                         continue;
                     }
 
@@ -636,6 +710,7 @@ void Student::userActions(App& sys)
                         cout << "\n";
                         cout << "Invalid lesson number.\n";
                         cout << "\n";
+
                         continue;
                     }
 
@@ -647,6 +722,7 @@ void Student::userActions(App& sys)
                         cout << "\n";
                         cout << "This lesson is not reserved.\n";
                         cout << "\n";
+
                         continue;
                     }
 
@@ -655,6 +731,7 @@ void Student::userActions(App& sys)
                         cout << "\n";
                         cout << "You can only cancel your own lessons.\n";
                         cout << "\n";
+
                         continue;
                     }
 
@@ -665,6 +742,7 @@ void Student::userActions(App& sys)
                     cout << "Lesson successfully cancelled.\n";
                     cout << "\n";
                 }
+
                 else if (choice == 'G')
                 {
                     cout << "\n";
@@ -680,6 +758,7 @@ void Student::userActions(App& sys)
         }
     }
 }
+
 
 
 void Instructor::userActions(App& sys)
@@ -703,32 +782,105 @@ void Instructor::userActions(App& sys)
             int hour, minute;
 
             cout << "Enter date (day month year): ";
-            cin >> day >> month >> year;
 
-            cout << "Enter starting time (hour minute): ";
-            cin >> hour >> minute;
+            if (!(cin >> day >> month >> year))
+            {
+                cin.clear();
+                cin.ignore(1000, '\n');
+
+                cout << "\n";
+                cout << "Invalid date input.\n";
+                cout << "\n";
+
+                continue;
+            }
 
             DateSlot today = sys.getToday();
 
-            // Cannot add a lesson in the past
+            if (year < today.year ||
+                year > today.year + 10)
+            {
+                cout << "\n";
+                cout << "Invalid year.\n";
+                cout << "\n";
+
+                continue;
+            }
+
+            if (!sys.isValidDate(day, month, year))
+            {
+                cout << "\n";
+                cout << "Invalid date.\n";
+                cout << "\n";
+
+                continue;
+            }
+
             if (year < today.year ||
                 (year == today.year && month < today.month) ||
-                (year == today.year && month == today.month && day < today.day))
+                (year == today.year &&
+                 month == today.month &&
+                 day < today.day))
             {
                 cout << "\n";
                 cout << "You cannot add a lesson in the past.\n";
                 cout << "\n";
+
                 continue;
             }
 
-            // Check time
+            cout << "Enter starting time (hour minute): ";
+
+            if (!(cin >> hour >> minute))
+            {
+                cin.clear();
+                cin.ignore(1000, '\n');
+
+                cout << "\n";
+                cout << "Invalid time input.\n";
+                cout << "\n";
+
+                continue;
+            }
+
             if (hour < 0 || hour > 23 ||
                 minute < 0 || minute > 59)
             {
                 cout << "\n";
                 cout << "Invalid time.\n";
                 cout << "\n";
+
                 continue;
+            }
+
+            int startMinutes = hour * 60 + minute;
+
+            if (startMinutes + 90 > 24 * 60)
+            {
+                cout << "\n";
+                cout << "Lesson cannot end after midnight.\n";
+                cout << "\n";
+
+                continue;
+            }
+
+            time_t nowTime = time(nullptr);
+            tm* now = localtime(&nowTime);
+
+            if (year == now->tm_year + 1900 &&
+                month == now->tm_mon + 1 &&
+                day == now->tm_mday)
+            {
+                if (hour < now->tm_hour ||
+                    (hour == now->tm_hour &&
+                     minute < now->tm_min))
+                {
+                    cout << "\n";
+                    cout << "You cannot add a lesson in the past.\n";
+                    cout << "\n";
+
+                    continue;
+                }
             }
 
             TimeDateSlot newSlot{
@@ -739,12 +891,12 @@ void Instructor::userActions(App& sys)
                 minute
             };
 
-            // Find the week containing this date
             int week = 0;
 
             while (true)
             {
-                vector<DateSlot> weekDates = sys.getWeek(week);
+                vector<DateSlot> weekDates =
+                    sys.getWeek(week);
 
                 bool found = false;
 
@@ -772,7 +924,8 @@ void Instructor::userActions(App& sys)
                 "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
             };
 
-            vector<DateSlot> weekDates = sys.getWeek(week);
+            vector<DateSlot> weekDates =
+                sys.getWeek(week);
 
             string selectedDay;
 
@@ -792,7 +945,8 @@ void Instructor::userActions(App& sys)
             int newStart = hour * 60 + minute;
             int newEnd = newStart + 90;
 
-            for (DrivingLesson* lesson : weekLessons[selectedDay])
+            for (DrivingLesson* lesson :
+                 weekLessons[selectedDay])
             {
                 if (lesson->getInstructor() != this)
                     continue;
@@ -801,9 +955,11 @@ void Instructor::userActions(App& sys)
                     lesson->getTimeDateSlot();
 
                 int existingStart =
-                    existingSlot.hour * 60 + existingSlot.minute;
+                    existingSlot.hour * 60 +
+                    existingSlot.minute;
 
-                int existingEnd = existingStart + 90;
+                int existingEnd =
+                    existingStart + 90;
 
                 if (newStart < existingEnd &&
                     newEnd > existingStart)
@@ -818,6 +974,7 @@ void Instructor::userActions(App& sys)
                 cout << "\n";
                 cout << "You already have a lesson during this time.\n";
                 cout << "\n";
+
                 continue;
             }
 
@@ -827,6 +984,7 @@ void Instructor::userActions(App& sys)
             cout << "Lesson added successfully.\n";
             cout << "\n";
         }
+
         else if (choice == 'V')
         {
             int week = 0;
@@ -848,6 +1006,7 @@ void Instructor::userActions(App& sys)
                     cout << "\n";
                     week++;
                 }
+
                 else if (choice == 'L')
                 {
                     cout << "\n";
@@ -863,6 +1022,7 @@ void Instructor::userActions(App& sys)
 
                     cout << "\n";
                 }
+
                 else if (choice == 'G')
                 {
                     cout << "\n";
@@ -870,6 +1030,7 @@ void Instructor::userActions(App& sys)
                 }
             }
         }
+
         else if (choice == 'L')
         {
             cout << "\n";
@@ -879,6 +1040,7 @@ void Instructor::userActions(App& sys)
 }
 
 
+
 void Admin::userActions(App& sys)
 {
     while (true) 
@@ -886,7 +1048,7 @@ void Admin::userActions(App& sys)
         cout << "\n";
         cout << "(C)reate user\n";
         cout << "(L)og out\n";
-        cout << "Choice:";
+        cout << "Choice: ";
 
         char choice;
         cin >> choice;
@@ -894,7 +1056,74 @@ void Admin::userActions(App& sys)
         if (choice == 'C') 
         {
             cout << "\n";
-            sys.createNewUser();
+
+            char role;
+            string name, surname, email, password;
+
+            cout << "Account data:\n";
+
+            cout << "Role (S-student,I-instructor,A-admin): ";
+            cin >> role;
+
+            if (role != 'S' &&
+                role != 'I' &&
+                role != 'A')
+            {
+                cout << "\n";
+                cout << "Invalid role choice!\n";
+                cout << "\n";
+
+                continue;
+            }
+
+            cout << "Enter first name, surename, email, password:\n";
+            cin >> name >> surname >> email >> password;
+
+            if (!sys.validEmail(email))
+            {
+                cout << "\n";
+                cout << "Invalid email.\n";
+                cout << "\n";
+
+                continue;
+            }
+
+            if (sys.emailExists(email))
+            {
+                cout << "\n";
+                cout << "This email is already registered.\n";
+                cout << "\n";
+
+                continue;
+            }
+
+            string fullName = name + " " + surname;
+
+            Person* newUser = nullptr;
+
+            switch (role) 
+            {
+                case 'S':
+                    newUser =
+                        new Student(fullName, email, password);
+                    break;
+
+                case 'I':
+                    newUser =
+                        new Instructor(fullName, email, password);
+                    break;
+
+                case 'A':
+                    newUser =
+                        new Admin(fullName, email, password);
+                    break;
+            }
+
+            sys.addUser(newUser);
+
+            cout << "\n";
+            cout << "Account created\n";
+            cout << "\n";
         } 
 
         else if (choice == 'L') 
@@ -904,6 +1133,7 @@ void Admin::userActions(App& sys)
         }
     }
 }
+
 
 
 int main()
@@ -925,7 +1155,8 @@ int main()
         {
             cout << "\n";
 
-            Person* loggedUser = system.login();
+            Person* loggedUser =
+                system.login();
 
             if (loggedUser != nullptr)
             {
@@ -934,12 +1165,14 @@ int main()
 
             cout << "\n";
         }
+
         else if (choice == 'E')
         {
             cout << "\n";
             cout << "Goodbye!\n";
             break;
         }
+
         else
         {
             cout << "\n";
@@ -950,3 +1183,4 @@ int main()
 
     return 0;
 }
+
